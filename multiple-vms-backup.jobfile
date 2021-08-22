@@ -1,0 +1,43 @@
+#!/bin/sh
+# XSIBackup-DC job to backup multiple VMs in their own directory
+# Allows logging to disk or stdout
+ENABLE_LOG=1       # 1 to log to disk, 0 to log to stdout
+LOG=/scratch/XSI/XSIBackup-DC/var/log/xsibackup.log # Where to log (if ENABLE_LOG = 1)
+BACKUPPATH=backupuser@synology:22/volume2/xsibackup-dc # No slash at the end !
+
+SAVEIFS=$IFS
+IFS=$(echo -en "\n,\b")
+
+# List of VMS to backup, comma or newline separated
+# Do NOT move this variable above the IFS statement above !
+VMS="vm1
+vm2, vm3,
+vm4
+"
+
+for vm in $VMS:
+do
+  if [[ $vm != "" && $vm != ":" ]];
+  then
+    mkdir -p $BACKUPPATH/$vm
+    {
+    /scratch/XSI/XSIBackup-DC/xsibackup \
+    --backup=cbt \
+    "VMs($vm)" \
+    $BACKUPPATH/$vm \
+    --use-smtp="2" \
+    --backup-how="hot" \
+    --config-backup \
+    --mail-to="backupreports@cu.be" \
+    --quiesce \
+    --rotate="45 D"
+    } | if [[ $ENABLE_LOG == 1 ]];
+    then
+      tee 1>>$LOG 2>&1
+    else
+      tee 2>&1
+    fi
+  fi
+done
+
+IFS=$SAVEIFS
