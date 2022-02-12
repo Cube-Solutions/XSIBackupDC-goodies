@@ -4,6 +4,7 @@
 ENABLE_LOG=1       # 1 to log to disk, 0 to log to stdout
 LOG=/scratch/XSI/XSIBackup-DC/var/log/xsibackup.log # Where to log (if ENABLE_LOG = 1)
 BACKUPPATH=backupuser@synology:22/volume2/xsibackup-dc # No slash at the end !
+REPORTEMAIL=your@email.com
 
 SAVEIFS=$IFS
 IFS=$(echo -en "\n,\b")
@@ -28,7 +29,7 @@ do
     --use-smtp="2" \
     --backup-how="hot" \
     --config-backup \
-    --mail-to="backupreports@cu.be" \
+    --mail-to=$REPORTEMAIL \
     --quiesce \
     --rotate="45 D"
     } | if [[ $ENABLE_LOG == 1 ]];
